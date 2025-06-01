@@ -1,7 +1,120 @@
-import { greetUser } from '$utils/greet';
+import { initConnectTrigger } from './utils/connect-accordion';
 
-window.Webflow ||= [];
-window.Webflow.push(() => {
-  const name = 'John Doe';
-  greetUser(name);
+// Declare Splide as a global variable
+declare global {
+  interface Window {
+    Splide: any;
+    splide: any;
+  }
+}
+
+function initSplide(selector: string, options: any, useAutoScroll = false) {
+  // Query all matching elements instead of just one
+  const splideElements = document.querySelectorAll(selector);
+  if (!splideElements.length) return;
+
+  // Initialize each instance
+  splideElements.forEach((element, index) => {
+    const uniqueId = `${selector.replace(/\./g, '')}-${index}`;
+    element.setAttribute('id', uniqueId);
+
+    // Check if track and list elements exist
+    const track = element.querySelector('.splide__track');
+    if (!track) {
+      console.warn(`Splide track element missing for ${selector}. Creating it.`);
+      const trackElement = document.createElement('div');
+      trackElement.className = 'splide__track';
+
+      // Move all children into the new track
+      while (element.firstChild) {
+        trackElement.appendChild(element.firstChild);
+      }
+      element.appendChild(trackElement);
+    }
+
+    // Check if list element exists inside track
+    const track2 = element.querySelector('.splide__track');
+    const list = track2?.querySelector('.splide__list');
+    if (track2 && !list) {
+      console.warn(`Splide list element missing for ${selector}. Creating it.`);
+      const listElement = document.createElement('div');
+      listElement.className = 'splide__list';
+
+      // Move all children from track into the new list
+      while (track2.firstChild) {
+        listElement.appendChild(track2.firstChild);
+      }
+      track2.appendChild(listElement);
+    }
+
+    const splide = new window.Splide(element, {
+      ...options,
+    });
+
+    // Enable clicking on slides to navigate
+    splide.on('mounted', () => {
+      if (splide.Components && splide.Components.Elements) {
+        const { slides } = splide.Components.Elements;
+        slides.forEach((slide: HTMLElement, slideIndex: number) => {
+          slide.addEventListener('click', () => {
+            splide.go(slideIndex);
+          });
+        });
+      }
+    });
+
+    // Mount Splide with Autoscroll extension only if needed
+    if (useAutoScroll && window.splide?.Extensions) {
+      splide.mount(window.splide.Extensions);
+    } else {
+      splide.mount();
+    }
+  });
+}
+
+// Initialize everything when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+  // Initialize the connect trigger animation
+  initConnectTrigger();
+
+  // Splide configuration
+  const splideConfigs = [
+    {
+      selector: '.splide.product-images',
+      options: {
+        type: 'slide',
+        autoWidth: true,
+        gap: '0px',
+        arrows: false,
+        pagination: false,
+        drag: 'free',
+        focus: 'left',
+        snap: true,
+      },
+      useAutoScroll: false,
+    },
+  ];
+
+  // Initialize product images slider immediately
+  splideConfigs.forEach((config) => {
+    initSplide(config.selector, config.options, config.useAutoScroll);
+  });
+
+  // Delay only the related products slider
+  setTimeout(() => {
+    initSplide(
+      '.splide.related-products',
+      {
+        type: 'slide',
+        autoWidth: true,
+        gap: '0px',
+        arrows: false,
+        pagination: false,
+        drag: 'free',
+        focus: 'left',
+        snap: true,
+      },
+      false
+    );
+  }, 500); // 500ms delay to allow Shopyflow to render
 });
