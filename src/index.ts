@@ -1,14 +1,55 @@
 import { initConnectTrigger } from './utils/connect-accordion';
 
-// Declare Splide as a global variable
+// Add styles to the document
+const style = document.createElement('style');
+style.textContent = `
+  .splide.related-products {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease-in, visibility 0.5s ease-in;
+  }
+  .splide.related-products.is-visible {
+    opacity: 1;
+    visibility: visible;
+  }
+`;
+document.head.appendChild(style);
+
+// Declare Splide types and global variable
+interface SplideOptions {
+  type?: string;
+  autoWidth?: boolean;
+  gap?: string;
+  arrows?: boolean;
+  pagination?: boolean;
+  drag?: boolean | 'free' | string;
+  focus?: string;
+  snap?: boolean;
+}
+
+interface SplideComponents {
+  Elements: {
+    slides: HTMLElement[];
+  };
+}
+
+interface SplideInstance {
+  mount: (extensions?: unknown) => void;
+  go: (index: number) => void;
+  on: (event: string, callback: () => void) => void;
+  Components?: SplideComponents;
+}
+
 declare global {
   interface Window {
-    Splide: any;
-    splide: any;
+    Splide: new (element: Element, options: SplideOptions) => SplideInstance;
+    splide: {
+      Extensions?: unknown;
+    };
   }
 }
 
-function initSplide(selector: string, options: any, useAutoScroll = false) {
+function initSplide(selector: string, options: SplideOptions, useAutoScroll = false) {
   // Query all matching elements instead of just one
   const splideElements = document.querySelectorAll(selector);
   if (!splideElements.length) return;
@@ -21,7 +62,7 @@ function initSplide(selector: string, options: any, useAutoScroll = false) {
     // Check if track and list elements exist
     const track = element.querySelector('.splide__track');
     if (!track) {
-      console.warn(`Splide track element missing for ${selector}. Creating it.`);
+      console.error(`Splide track element missing for ${selector}. Creating it.`);
       const trackElement = document.createElement('div');
       trackElement.className = 'splide__track';
 
@@ -36,7 +77,7 @@ function initSplide(selector: string, options: any, useAutoScroll = false) {
     const track2 = element.querySelector('.splide__track');
     const list = track2?.querySelector('.splide__list');
     if (track2 && !list) {
-      console.warn(`Splide list element missing for ${selector}. Creating it.`);
+      console.error(`Splide list element missing for ${selector}. Creating it.`);
       const listElement = document.createElement('div');
       listElement.className = 'splide__list';
 
@@ -59,6 +100,13 @@ function initSplide(selector: string, options: any, useAutoScroll = false) {
           slide.addEventListener('click', () => {
             splide.go(slideIndex);
           });
+        });
+      }
+
+      // Add fade-in effect after mounting if it's the related products slider
+      if (selector === '.splide.related-products') {
+        requestAnimationFrame(() => {
+          element.classList.add('is-visible');
         });
       }
     });
