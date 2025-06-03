@@ -12,6 +12,24 @@ style.textContent = `
     opacity: 1;
     visibility: visible;
   }
+
+  /* Product grid image fade-in styles */
+  .product-image-thumbnail {
+    opacity: 0;
+    transition: opacity 0.6s ease-out;
+  }
+  .product-image-thumbnail.fade-in {
+    opacity: 1;
+  }
+
+  /* Product page slider image fade-in styles */
+  .splide.product-images .image {
+    opacity: 0;
+    transition: opacity 0.5s ease-out;
+  }
+  .splide.product-images.images-loaded .image {
+    opacity: 1;
+  }
 `;
 document.head.appendChild(style);
 
@@ -47,6 +65,31 @@ declare global {
       Extensions?: unknown;
     };
   }
+}
+
+// Function to animate product grid images
+function animateProductGridImages() {
+  const productImages = document.querySelectorAll('.product-image-thumbnail');
+
+  if (!productImages.length) return;
+
+  productImages.forEach((image, index) => {
+    setTimeout(() => {
+      image.classList.add('fade-in');
+    }, index * 50); // Overlapping animations with 50ms stagger
+  });
+}
+
+// Function to animate product page slider images
+function animateProductSliderImages() {
+  const productSlider = document.querySelector('.splide.product-images');
+
+  if (!productSlider) return;
+
+  // Add a small delay to ensure images are loaded
+  setTimeout(() => {
+    productSlider.classList.add('images-loaded');
+  }, 150);
 }
 
 function initSplide(selector: string, options: SplideOptions, useAutoScroll = false) {
@@ -102,6 +145,13 @@ function initSplide(selector: string, options: SplideOptions, useAutoScroll = fa
         return;
       }
 
+      // Trigger fade-in animation for product slider images
+      if (selector === '.splide.product-images') {
+        setTimeout(() => {
+          animateProductSliderImages();
+        }, 100);
+      }
+
       // Add click navigation for other sliders
       if (splide.Components && splide.Components.Elements) {
         const { slides } = splide.Components.Elements;
@@ -126,6 +176,11 @@ function initSplide(selector: string, options: SplideOptions, useAutoScroll = fa
 document.addEventListener('DOMContentLoaded', () => {
   // Initialize the connect trigger animation
   initConnectTrigger();
+
+  // Animate product grid images after a short delay
+  setTimeout(() => {
+    animateProductGridImages();
+  }, 150);
 
   // Splide configuration
   const splideConfigs = [
