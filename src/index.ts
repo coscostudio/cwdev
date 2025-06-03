@@ -92,21 +92,23 @@ function initSplide(selector: string, options: SplideOptions, useAutoScroll = fa
       ...options,
     });
 
-    // Enable clicking on slides to navigate
+    // Enable clicking on slides to navigate (but not for related products)
     splide.on('mounted', () => {
+      // Handle related products slider separately (no click navigation)
+      if (selector === '.splide.related-products') {
+        requestAnimationFrame(() => {
+          element.classList.add('is-visible');
+        });
+        return;
+      }
+
+      // Add click navigation for other sliders
       if (splide.Components && splide.Components.Elements) {
         const { slides } = splide.Components.Elements;
         slides.forEach((slide: HTMLElement, slideIndex: number) => {
           slide.addEventListener('click', () => {
             splide.go(slideIndex);
           });
-        });
-      }
-
-      // Add fade-in effect after mounting if it's the related products slider
-      if (selector === '.splide.related-products') {
-        requestAnimationFrame(() => {
-          element.classList.add('is-visible');
         });
       }
     });
