@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Animate product grid images after a short delay
   setTimeout(() => {
     animateProductGridImages();
-  }, 150);
+  }, 400);
 
   // Splide configuration
   const splideConfigs = [
